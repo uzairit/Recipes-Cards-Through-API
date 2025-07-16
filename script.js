@@ -1,9 +1,9 @@
 let box = document.getElementById('box')
-fetch('https://dummyjson.com/recipes')
-    .then(rec => rec.json())
-    .then((data) => {
-        data.recipes.forEach((r, i) => {
-            box.innerHTML += `
+const hamburger = document.getElementById('hamburger');
+const navElements = document.getElementById('nav-elements');
+const closeNav = document.getElementById('closeNav');
+function renderCards(r, i) {
+    box.innerHTML += `
                 <div>
                     <div>
                         <img src="${r.image}" alt="">
@@ -21,17 +21,81 @@ fetch('https://dummyjson.com/recipes')
                     </div>
                 </div>
                 `
-        });
-        let infoCl = document.querySelectorAll('.info')
-        for (let info of infoCl) {
-            info.addEventListener('click', () => {
-                const index = info.getAttribute('data-index')
-                localStorage.setItem('recipe', JSON.stringify(data.recipes[index]))
-                window.location.href = 'info.html'
+}
+fetch('https://dummyjson.com/recipes')
+    .then(rec => rec.json())
+    .then((data) => {
+        const difficulty = []
+        const cuisine = []
+        const select1 = document.querySelector('#select1')
+        const select2 = document.querySelector('#select2')
+        const searchInp = document.querySelector('#searchInp')
+        const resetBtn = document.querySelector('#resetBtn')
+
+        data.recipes.forEach((r, i) => {
+            renderCards(r, i)
+        })
+
+        searchInp.addEventListener('keydown', (key) => {
+            if (key.key === 'Enter') {
+                applyFilter()
+            }
+        })
+
+        data.recipes.forEach((r) => {
+            if (!cuisine.includes(r.cuisine)) {
+                cuisine.push(r.cuisine)
+            }
+        })
+        cuisine.forEach((value) => {
+            select1.innerHTML += `
+            <option value="${value}">${value}</option>`
+        })
+
+        data.recipes.forEach((r) => {
+            if (!difficulty.includes(r.difficulty)) {
+                difficulty.push(r.difficulty)
+            }
+        })
+        difficulty.forEach((value) => {
+            select2.innerHTML += `
+            <option value="${value}">${value}</option>`
+        })
+
+        function applyFilter() {
+            const searchValue = searchInp.value.toLowerCase()
+            box.innerHTML = ``
+            const filteredRecipes = data.recipes.filter((r) => {
+                const matchSearch = !searchValue || r.name.toLowerCase().includes(searchValue)
+                const matchCuisin = (select1.value === 'All' || select1.value === r.cuisine)
+                const matchDifficulty = (select2.value === 'All' || select2.value === r.difficulty)
+                return matchSearch && matchCuisin && matchDifficulty
             })
+
+            if (filteredRecipes.length === 0) {
+                box.innerHTML = `<p style="text-align:center; font-size:18px; color:#f06595; grid-column: 1 / -1;">No recipes found matching your criteria.</p>`;
+            }
+            else {
+                filteredRecipes.forEach((r, i) => renderCards(r, i))
+            }
+            infoEvent()
+            addEvent()
+        }
+        select1.addEventListener('change', applyFilter)
+        select2.addEventListener('change', applyFilter)
+
+        function infoEvent() {
+            let infoCl = document.querySelectorAll('.info')
+            for (let info of infoCl) {
+                info.addEventListener('click', () => {
+                    const index = info.getAttribute('data-index')
+                    localStorage.setItem('recipe', JSON.stringify(data.recipes[index]))
+                    window.location.href = 'info.html'
+                })
+            }
         }
 
-        let addCl = document.querySelectorAll('.add')
+        infoEvent()
         let cartNum = document.getElementById('cartNum')
         let cartIcon = document.getElementById('cartIcon')
         let cartBox = document.getElementById('cartBox')
@@ -69,13 +133,15 @@ fetch('https://dummyjson.com/recipes')
             cartNum.style.display = 'inline-block';
         }
 
-        for (let add of addCl) {
-            add.addEventListener('click', () => {
-                const index = add.getAttribute('data-index')
-                let recipe = data.recipes[index]
-                if (!cartItems[recipe.name]) {
-                    cartItems[recipe.name] = 1
-                    cartBox.innerHTML += `
+        function addEvent() {
+            let addCl = document.querySelectorAll('.add')
+            for (let add of addCl) {
+                add.addEventListener('click', () => {
+                    const index = add.getAttribute('data-index')
+                    let recipe = data.recipes[index]
+                    if (!cartItems[recipe.name]) {
+                        cartItems[recipe.name] = 1
+                        cartBox.innerHTML += `
                             <div class="itemContainer" data-name="${recipe.name}">
                                     <img src="${recipe.image}" alt="">                               
                                     <strong class='recipeNameCart'>${recipe.name}</strong> 
@@ -86,36 +152,38 @@ fetch('https://dummyjson.com/recipes')
                                         </div>
                                         </div>
                                         `
-                    let checkOutBtn = document.querySelector('#checkOutBtn')
-                    if (!checkOutBtn) {
-                        checkOutBtn = document.createElement('button')
-                        checkOutBtn.id = "checkOutBtn"
-                        checkOutBtn.textContent = "Check-Out"
-                        cartBox.appendChild(checkOutBtn)
+                        let checkOutBtn = document.querySelector('#checkOutBtn')
+                        if (!checkOutBtn) {
+                            checkOutBtn = document.createElement('button')
+                            checkOutBtn.id = "checkOutBtn"
+                            checkOutBtn.textContent = "Check-Out"
+                            cartBox.appendChild(checkOutBtn)
+                        }
+                        else {
+                            cartBox.appendChild(checkOutBtn)
+                        }
+
                     }
                     else {
-                        cartBox.appendChild(checkOutBtn)
+                        cartItems[recipe.name] += 1
+                        countElement = document.querySelector(`.itemCount[data-name="${recipe.name}"]`)
+                        countElement.innerText = cartItems[recipe.name]
+
+                        if (cartItems[recipe.name] === 2) {
+                            const icon = document.querySelector(`.trash[data-name="${recipe.name}"]`)
+                            icon.classList.remove('fa-trash')
+                            icon.classList.add('fa-minus')
+                        }
                     }
 
-                }
-                else {
-                    cartItems[recipe.name] += 1
-                    countElement = document.querySelector(`.itemCount[data-name="${recipe.name}"]`)
-                    countElement.innerText = cartItems[recipe.name]
-
-                    if (cartItems[recipe.name] === 2) {
-                        const icon = document.querySelector(`.trash[data-name="${recipe.name}"]`)
-                        icon.classList.remove('fa-trash')
-                        icon.classList.add('fa-minus')
-                    }
-                }
-
-                const counter = Object.values(cartItems).reduce((acc, curr) => acc + curr, 0)
-                cartNum.innerText = counter
-                cartNum.style.display = 'inline-block'
-                localStorage.setItem('data', JSON.stringify(cartItems))
-            })
+                    const counter = Object.values(cartItems).reduce((acc, curr) => acc + curr, 0)
+                    cartNum.innerText = counter
+                    cartNum.style.display = 'inline-block'
+                    localStorage.setItem('data', JSON.stringify(cartItems))
+                })
+            }
         }
+        addEvent()
 
         cartBox.addEventListener('click', (e) => {
             if (e.target.classList.contains('trash')) {
@@ -198,22 +266,18 @@ fetch('https://dummyjson.com/recipes')
     .catch((error) => {
         console.error("Error:", error);
     })
-const hamburger = document.getElementById('hamburger');
-const navLinks = document.getElementById('nav-links');
-const closeNav = document.getElementById('closeNav');
 
 hamburger.addEventListener('click', (e) => {
     e.stopPropagation();
-    navLinks.classList.add('show');
+    navElements.classList.add('show');
 });
 
 closeNav.addEventListener('click', () => {
-    navLinks.classList.remove('show');
+    navElements.classList.remove('show');
 });
 
-// Close nav if click outside
 document.addEventListener('click', (e) => {
-    if (!navLinks.contains(e.target) && !hamburger.contains(e.target)) {
-        navLinks.classList.remove('show');
+    if (!navElements.contains(e.target) && !hamburger.contains(e.target)) {
+        navElements.classList.remove('show');
     }
 });

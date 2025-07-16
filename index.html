@@ -19,12 +19,17 @@
             <div class="hamburger" id="hamburger">
                 <i class="fa-solid fa-bars"></i>
             </div>
-            <div id="nav-links">
+            <div id="nav-elements">
                 <span id="closeNav"><i class="fa-solid fa-xmark"></i></span>
-                <a href="#">Home</a>
-                <a href="#">Recipes</a>
-                <a href="#">About</a>
-                <a href="#">Contact</a>
+                <div>
+                    <input id="searchInp" type="text" placeholder="Search Recipes">
+                </div>
+                <select name="" id="select1">
+                    <option value="All" selected>All Cuisines</option>
+                </select>
+                <select name="" id="select2">
+                    <option value="All" selected>All Difficulties</option>
+                </select>
                 <span id="cartIcon">
                     <i class="fa-solid fa-cart-shopping"></i>
                     <span id="cartNum">0</span>
@@ -33,7 +38,27 @@
             </div>
         </nav>
     </header>
+    <section class="image-banner">
+        <img src="https://images.unsplash.com/photo-1543353071-873f17a7a088?auto=format&fit=crop&w=1350&q=80"
+            alt="Delicious Food Banner">
+        <div class="banner-overlay">
+            <h1>Delicious Recipes Await</h1>
+            <p>Find the perfect recipe for your occasion</p>
+        </div>
+    </section>
+    <h2 class="section-heading">Explore Our Recipes</h2>
     <main id="box"></main>
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo"><i class="fa-solid fa-kitchen-set"></i> Recipes</div>
+            <p>&copy; 2025 Recipes. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Contact</a>
+            </div>
+        </div>
+    </footer>
     <script src="script.js"></script>
 </body>
 
